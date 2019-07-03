@@ -1,0 +1,578 @@
+<!--
+☺ add long break 
+	☺ changes background 
+	☺ removes bebop monitor
+	☺ longer time
+☺ fix selector wheels to increment value instead of selecting to final value
+☺ add stop button
+☺ change q2 display
+☺ add pause button and let space bar pause/play (?)
+☺ add overlay instructions
+-->
+<!DOCTYPE html>
+<html>
+<head>	
+	<link rel="stylesheet" href="stylev2.css">
+</head>
+<body>
+	<div class="container">
+		<div class="container_background">
+
+			<img src="Background.png">
+
+			<div class="container_background_gif crt">
+				<img id="bg" src ="_media/_background/i.gif" alt="bebop gif" class="BW">
+
+				<div class="tv_text" id="q1_timer_break_tracker">
+					<p>--/--</p>
+				</div>
+				<div class="tv_text" id="q2_timer_status">
+					<p>
+						<span id="q2_timer_status_text">PLAY</span>
+						<span id="q2_timer_status_tag">##</span>
+					</p>
+				</div>
+				<div class="tv_text" id="q3_timer_controls_monitor">
+					<p>ERR:##</p>
+				</div>
+				<div class="tv_text" id="q4_clock_tracker">
+					<p>00:00:00</p>
+				</div>
+
+				<div class="tv_text" id="timer_work_monitor"></div>
+				<div class="tv_text" id="timer_break_monitor"></div>
+			
+				<div id="bebop_monitor" class="crt"></div>
+
+			</div>
+			
+			<div id="timer_backdrop" class="crt "></div>
+
+
+			<div class="controls selector" id="selector1" data-desc="WORK_TIME">
+				<img src ="selector1.png" alt="selector1">
+			</div>
+
+			<div class="controls selector" id="selector2" data-desc="BREAK_TIME">
+				<img src ="selector1.png" alt="selector2">
+			</div>
+
+			<div class="controls button" id="change_bg" data-desc="NEXT_VIEW">
+			</div>
+
+			<div class="controls button" id="start_timer" data-desc="START_TIMER">
+			</div>
+
+		</div>
+
+	</div>
+</body>
+<script>
+	// MEDIA DATA // MEDIA DATA // MEDIA DATA // MEDIA DATA // MEDIA DATA // MEDIA DATA // MEDIA DATA 
+	// MEDIA DATA // MEDIA DATA // MEDIA DATA // MEDIA DATA // MEDIA DATA // MEDIA DATA // MEDIA DATA 
+	// BG = BACKGROUND
+	// TO = TRANSITION WORK ONBOARD
+	// TF = TRANSITION WORK OFFBOARD
+	// LB = LONG BREAK
+	// SB = SHORT BREAK
+	// MEDIA DATA // MEDIA DATA // MEDIA DATA // MEDIA DATA // MEDIA DATA // MEDIA DATA // MEDIA DATA 
+	// MEDIA DATA // MEDIA DATA // MEDIA DATA // MEDIA DATA // MEDIA DATA // MEDIA DATA // MEDIA DATA 
+
+
+
+	var break_tracker_n = 3;
+
+
+	var bg_i = 0; //background media
+	const bg_list_id = ["#A3F2", "#B98F", "#C23F", "undefined", "#DJ2L", "#E53O", "#F09P", "#GS9A", "##H1"];
+	const bg_list = [	"_media/_background/a.gif",
+						"_media/_background/b.gif",
+						"_media/_background/c.gif",
+						"_media/_background/i.gif",
+						"_media/_background/d.gif",
+						"_media/_background/e.gif",
+						"_media/_background/f.gif",
+						"_media/_background/g.gif",
+						"_media/_background/h.gif"
+						];
+	const bg = {indx: bg_i, list: bg_list, ident: bg_list_id };
+	
+	var to_i = 0; //transition media
+	const to_list_id = ["SEQ:LAUNCH"]
+	const to_list = [	"_media/_tr_on/giphy1.gif"];
+	const to = {indx: to_i, list: to_list, ident: to_list_id };
+
+	var tf_i = 0; //transition media
+	const tf_list_id = ["SEQ:STALL"]
+	const tf_list = [	"_media/_tr_off/giphy1.gif"];
+	const tf = {indx: tf_i, list: tf_list, ident: tf_list_id };
+
+	var lb_i = 0; //long break media
+	const lb_list = [	"_media/_long_break/giphy1.gif",
+						"_media/_long_break/giphy2.gif",
+						"_media/_long_break/giphy3.gif"
+						];
+	const lb = {indx: lb_i, list: lb_list, ident: [] };
+
+	var sb_i = 0; //short break media
+	const sb_list = [	"_media/_short_break/giphy1.gif",
+						"_media/_short_break/giphy2.gif",
+						"_media/_short_break/giphy3.gif",
+						"_media/_short_break/giphy4.gif",
+						"_media/_short_break/giphy5.gif",
+						"_media/_short_break/giphy6.gif",
+						"_media/_short_break/giphy7.gif",
+						"_media/_short_break/giphy8.gif",
+						"_media/_short_break/giphy9.gif",
+						"_media/_short_break/giphy10.gif"
+						];
+	const sb = {indx: sb_i, list: sb_list, ident: [] };
+
+	var wk_i = 0; //work media
+	const wk_list = [	"_media/_work/giphy1.gif",
+						"_media/_work/giphy2.gif",
+						"_media/_work/giphy3.gif",
+						"_media/_work/giphy4.gif",
+						"_media/_work/giphy5.gif",
+						"_media/_work/giphy6.gif",
+						"_media/_work/giphy7.gif",
+						"_media/_work/giphy8.gif",
+						];
+	const wk = {indx: wk_i, list: wk_list, ident: [] };
+	
+	var ws_i = 0; //work sprite media
+	const ws_list = [	"_media/_work_sprite/giphy1.gif",
+						"_media/_work_sprite/giphy2.gif",
+						"_media/_work_sprite/giphy3.gif",
+						"_media/_work_sprite/giphy4.gif",
+						"_media/_work_sprite/giphy5.gif",
+						"_media/_work_sprite/giphy6.gif",
+						"_media/_work_sprite/giphy7.gif"
+						];
+	const ws = {indx: ws_i, list: ws_list, ident: [] };
+
+	var audio_tf_i = 0;
+	const audio_tf_list = [	new Audio("_media/_audio/audio1.wav")];
+	const audio_tf = {indx: audio_tf_i, list: audio_tf_list, ident: [] };
+						
+	var audio_to_i = 0;
+	const audio_to_list = [	new Audio("_media/_audio/tr_on.wav")];
+	const audio_to = {indx: audio_to_i, list: audio_to_list, ident: [] };
+
+	//HELPER FUNCTIONS //HELPER FUNCTIONS //HELPER FUNCTIONS //HELPER FUNCTIONS //HELPER FUNCTIONS 
+	//HELPER FUNCTIONS //HELPER FUNCTIONS //HELPER FUNCTIONS //HELPER FUNCTIONS //HELPER FUNCTIONS 
+	//HELPER FUNCTIONS //HELPER FUNCTIONS //HELPER FUNCTIONS //HELPER FUNCTIONS //HELPER FUNCTIONS 
+	function getTime() {
+		let out = {
+			mil: new Date().getMilliseconds(),
+			sec: new Date().getSeconds(),
+			min: new Date().getMinutes(),
+			hrs: new Date().getHours()
+		}
+		// console.log("getTime: " + out.min + " : " + out.sec);
+		return out;
+	}
+
+
+	function timeToText(time_i) {
+
+		let mil_i = ('00' + time_i.mil).substr(-2);
+		let sec_i = ('0'  + time_i.sec).substr(-2);
+		let min_i = ('0'  + time_i.min).substr(-2);
+		let hrs_i = ('0'  + time_i.hrs).substr(-2);
+
+		return hrs_i + ":" + min_i + ":" + sec_i + ":" + mil_i;
+	}
+
+	function timeToMil(time_i) {
+		let out = 
+			time_i.mil 
+			+ (time_i.sec * 1000) 
+			+ (time_i.min * 1000 * 60)
+			+ (time_i.hrs * 1000 * 60 * 60);
+		return out;
+	}
+
+	function milToTime(time_mil) {
+		let out = {
+			mil: parseInt((time_mil % 1000) / 10),
+    		sec: Math.floor((time_mil / 1000) % 60),
+    		min: Math.floor((time_mil / (1000 * 60)) % 60),
+    		hrs: Math.floor((time_mil / (1000 * 60 * 60)) % 24)
+    	};
+    	return out;
+	}
+	function milToText(x) {
+		return timeToText(milToTime(x));
+	}
+
+	//CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES 
+	class bebopTimer
+	{
+		constructor(timer_end_default, monitor, command) 
+		{
+			this.status = true;
+			this.start_time = 0;
+			this.end_time_mil = timer_end_default;
+			this.timer_end_default = timer_end_default;
+			this.nextTimer = undefined;
+
+			this.volumeSet = 0;
+
+			this.monitor = monitor;
+			this.command = command;
+			this.command2 = command;
+
+			this.playedOnboard = false;
+			this.playedOffboard = false;
+
+		}
+		startTimer() 
+		{
+			this.status = true;
+			this.start_time = new Date();
+			this.playedOnboard = false;
+			this.playedOffboard = false;
+			if (this.command == "work") 
+			{
+				transition_work_onboard()
+			}
+			else if (this.command == "break")
+			{
+				// this.monitor.setCommand(this.findBreakType());
+			}
+		}
+		setEndTime(time_i_mil) 
+		{
+			this.end_time_mil = time_i_mil;
+		}
+		get elapsedTime() {
+			if (!this.status || this.start_time == 0) 
+			{
+				return 0;
+			}
+			let time_now = new Date();
+
+			let dt = time_now - this.start_time;
+
+			if (dt > 3*1000 && !this.playedOnboard)
+			{
+				rotateBackground();
+				this.playedOnboard = true;
+				this.monitor.setCommand(this.command);
+			}
+
+			return dt;
+		}
+		get timeLeft() {
+			let dt = this.end_time_mil - this.elapsedTime;
+
+			if (this.command == "work" && dt < 25*1000 && !this.playedOffboard) 
+			{
+				transition_work_offboard();
+				rotateBackground();
+				this.playedOffboard = true;
+			}
+
+			if (dt < 20*1000 && dt > (20*1000-9)) 
+			{
+				rotateBackground(tf_list, tf_i, tf_list_id);
+			}
+
+			if (dt <= 0 && this.status) 
+			{
+				this.resetTime();
+				return 0;
+			}
+			else if (!this.status) 
+			{
+				return 0;
+			}
+			return dt;
+		}
+		resetTime() 
+		{
+			this.status = false;
+			this.end_time_mil = this.timer_end_default;
+			this.volumeSet = 0;
+			// audio_i + 1 < audio_list.length ? audio_i += 1 : audio_i = 0;
+			if (this.command == "break")
+			{
+				this.monitor.setCommand(this.findBreakType());
+			}
+			this.startNext();
+		}
+		startNext() 
+		{
+			this.nextTimer.startTimer();
+			
+		}
+		setNextTimer(timer) 
+		{
+			this.nextTimer = timer;
+		}
+		stopTime() 
+		{
+			this.status = false;
+			this.start_time = 0;
+		}
+		setDefaultTime(input0) 
+		{
+			this.timer_end_default = input0;
+		}
+		setCommand(input0) 
+		{
+			this.command = input0;
+		}
+		findBreakType() 
+		{
+			if (break_tracker_n < 4) { 
+				this.monitor.setCommand("break_short")}
+			else if (break_tracker_n <= 4) { 
+				this.monitor.setCommand("break_long");
+			}
+			updateBreakTracker();
+		}	
+	}
+	//CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES //CLASSES 
+	
+	class bebopMonitor {
+		constructor() {
+			this.command = "default"
+		}
+		setCommand(command) {
+			this.command = command;
+			this.updateCommand();
+		}
+		updateCommand() {
+			switch (this.command) {
+				case "work": 		this.setMonitor(wk_list); 	break;
+				case "work_on": 	this.setMonitor(to_list); 	playTransition(audio_to_list, 1); 		break;
+				case "work_off": 	this.setMonitor(tf_list); 	playTransition(audio_tf_list, 0.5);		break;
+				case "break_short": this.setMonitor(sb_list); 	break;
+				case "break_long": 	this.setMonitor(lb_list); 	break;
+			}
+		}
+		setMonitor(x) {
+			let length_x = x.length;
+			let rand_index = Math.floor(Math.random()*length_x);
+			setBebopGif(x[rand_index]);
+		}
+	}
+
+	//GLOBALS VARS //GLOBALS VARS //GLOBALS VARS //GLOBALS VARS //GLOBALS VARS //GLOBALS VARS //GLOBALS VARS 
+	//GLOBALS VARS //GLOBALS VARS //GLOBALS VARS //GLOBALS VARS //GLOBALS VARS //GLOBALS VARS //GLOBALS VARS 
+	//GLOBALS VARS //GLOBALS VARS //GLOBALS VARS //GLOBALS VARS //GLOBALS VARS //GLOBALS VARS //GLOBALS VARS 
+	
+
+	var timer_work_end_global = {};
+	var timer_work_end_mil_global = 0;
+	var timer_work_end_text_global = "00:25:00";
+	var timer_work_monitor_text_global = "00:25:00";
+
+
+
+	var timer_break_end_global = {};
+	var timer_break_end_mil_global = 0;
+	var timer_break_end_text_global = "00:25:00";
+	var timer_break_monitor_text_global = "00:25:00";
+
+
+	//GLOBAL CONTROL FUNCTIONS //GLOBAL CONTROL FUNCTIONS //GLOBAL CONTROL FUNCTIONS //GLOBAL CONTROL FUNCTIONS 
+										// 			 |			 //
+										//	  Q2	 |	   Q1	 //
+										//___________|___________//
+										//			 |			 //
+										//	  Q3	 |	   Q4	 //
+										//			 |			 //
+	//GLOBAL CONTROL FUNCTIONS //GLOBAL CONTROL FUNCTIONS //GLOBAL CONTROL FUNCTIONS //GLOBAL CONTROL FUNCTIONS 
+
+	function changeQ2Status_tag(text_insert) {
+		var monitor = document.getElementById("q2_timer_status_tag");
+		monitor.innerHTML = bg_list_id[bg_i];
+		monitor.innerHTML = text_insert;
+	}
+
+	function changeQ3Status_monitor() {
+		var monitor = document.getElementById("q3_timer_controls_monitor");
+		monitor.innerHTML = "<p>" + this.dataset.desc + "</p>";
+		this.addEventListener("mouseleave", changeQ3Status_default)
+	}
+
+	function changeQ3Status_default() {
+		var monitor = document.getElementById("q3_timer_controls_monitor");
+		monitor.innerHTML = "<p>ERR:##</p>";
+		this.removeEventListener("mouseleave", changeQ3Status_default);
+	}
+	
+	function playTransition(list, offset) {
+		
+		if (offset == undefined) {offset = 0;}
+
+		audio_i = list[0]
+		audio_i.currentTime = offset;
+		audio_i.play();
+	}
+
+    function rotateBackground(list, index, id) {
+    	if (list === undefined) {list = bg_list; index = bg_i; id = bg_list_id;}
+		// bg_i + 1 < bg_list.length ? bg_i += 1 : bg_i = 0;
+
+		index = Math.floor((Math.random())*(list.length))
+        document.getElementById("bg").src = list[index];
+        document.getElementById("q1_timer_break_tracker").src = list[index];
+        changeQ2Status_tag(id[index]);
+    }
+
+	// function transition_work_onboard() {
+	// 	rotateBackground(to_list,to_i,to_list_id);	
+	// }
+	// function transition_work_offboard() {
+	// 	rotateBackground(tf_list,tf_i,tf_list_id);	}
+
+	function transition_work_onboard() 
+	{	playTransition(audio_to_list, 1);	rotateBackground(to_list,to_i,to_list_id);	}
+	function transition_work_offboard() 
+	{	playTransition(audio_tf_list, 0.5);	rotateBackground(tf_list,tf_i,tf_list_id);	}
+	
+	function toggleBreak() {}
+
+	function setBebopGif(url) {
+		if (url == undefined) {return;}
+		document.getElementById("bebop_monitor").innerHTML = `<img id="bg" src =${url} alt="bebop gif" class="turnOff fadeOpacity crt">`;
+	}
+	function updateBreakTracker() {
+		console.log(break_tracker_n);
+		let break_tracker = "";
+		break_tracker_n <= 3 ? break_tracker_n += 1 : break_tracker_n = 0;
+		switch (break_tracker_n)
+		{
+			case 0: 	break_tracker = "<p>--/--</p>";	break;
+			case 1: 	break_tracker = "<p>--/-•</p>"; break;
+			case 2: 	break_tracker = "<p>--/••</p>"; break;
+			case 3: 	break_tracker = "<p>-•/••</p>"; break;
+			case 4: 	break_tracker = "<p>••/••</p>"; break;
+		}
+		console.log(break_tracker_n);
+		document.getElementById("q1_timer_break_tracker").innerHTML = break_tracker;
+	}
+
+	//ROTATE SELECTORS //ROTATE SELECTORS //ROTATE SELECTORS //ROTATE SELECTORS //ROTATE SELECTORS
+	//ROTATE SELECTORS //ROTATE SELECTORS //ROTATE SELECTORS //ROTATE SELECTORS //ROTATE SELECTORS
+	//ROTATE SELECTORS //ROTATE SELECTORS //ROTATE SELECTORS //ROTATE SELECTORS //ROTATE SELECTORS
+
+	const dials = document.querySelectorAll(".selector");
+	
+	dials.forEach(dial => {
+		dial.addEventListener("mousedown", rotate_dial_selector);
+	});
+
+	function rotate_dial_selector(e) {
+		if (this.id == "selector1") {
+			document.addEventListener("mousemove", rotate_dial_1);
+		}
+		else {
+			document.addEventListener("mousemove", rotate_dial_2);
+		}
+		document.addEventListener("mouseup", rotate_dial_end);
+	}
+
+	function rotate_dial_1(e) { //center @ y_pos = ~336
+		var rot_i = getComputedStyle(document.documentElement).getPropertyValue('--selector1_rot');
+		var delta = (180 * (e.clientY - 336) / 200);
+        document.documentElement.style.setProperty("--selector1_rot", delta + "deg");
+		// SET GLOBAL VARS
+		timer_work_end_mil_global = ((2 * 60 * 60 * 1000) * (700-e.clientY)/700)*0.5 -14000;
+		timer_work_end_global = milToTime(timer_work_end_mil_global);
+		timer_work_end_text_global = timeToText(timer_work_end_global);
+		timer_work_global.setEndTime(timer_work_end_mil_global);
+
+		if (break_tracker_n  == 0) {
+			timer_work_global.setDefaultTime(timer_work_end_mil_global);
+		}
+	}
+	function rotate_dial_2(e) { //center @ y_pos = 418
+		var rot_i = getComputedStyle(document.documentElement).getPropertyValue('--selector2_rot');
+		var delta = (180 * (e.clientY - 336) / 200);
+        document.documentElement.style.setProperty("--selector2_rot", delta + "deg");
+		// SET GLOBAL VARS
+		timer_break_end_mil_global = ((2 * 60 * 60 * 1000) * (700-e.clientY)/700) * 0.25;
+		timer_break_end_global = milToTime(timer_break_end_mil_global);
+		timer_break_end_text_global = timeToText(timer_break_end_global);
+		timer_break_global.setEndTime(timer_break_end_mil_global);
+		if (break_tracker_n  == 0) {
+			timer_break_global.setDefaultTime(timer_break_end_mil_global);
+		}
+	}
+
+	function rotate_dial_end() {
+		document.removeEventListener("mousemove", rotate_dial_1);
+		document.removeEventListener("mousemove", rotate_dial_2);
+		document.removeEventListener("mouseup", rotate_dial_end);
+	}
+
+	//BUTTON DESIGN //BUTTON DESIGN //BUTTON DESIGN //BUTTON DESIGN //BUTTON DESIGN //BUTTON DESIGN 
+	//BUTTON DESIGN //BUTTON DESIGN //BUTTON DESIGN //BUTTON DESIGN //BUTTON DESIGN //BUTTON DESIGN 
+	//BUTTON DESIGN //BUTTON DESIGN //BUTTON DESIGN //BUTTON DESIGN //BUTTON DESIGN //BUTTON DESIGN 
+
+	document.getElementById("change_bg").addEventListener("mousedown", function() {rotateBackground()});
+
+	controls = document.querySelectorAll(".controls");
+	controls.forEach(x => x.addEventListener("mouseover", changeQ3Status_monitor));
+
+	document.getElementById("start_timer").addEventListener("mousedown", function() {
+		timer_work_global.startTimer();	
+	})
+
+	//VISUAL ANIMATE DESIGN //VISUAL ANIMATE DESIGN //VISUAL ANIMATE DESIGN //VISUAL ANIMATE DESIGN
+	//VISUAL ANIMATE DESIGN //VISUAL ANIMATE DESIGN //VISUAL ANIMATE DESIGN //VISUAL ANIMATE DESIGN
+	//VISUAL ANIMATE DESIGN //VISUAL ANIMATE DESIGN //VISUAL ANIMATE DESIGN //VISUAL ANIMATE DESIGN
+
+	//GLOBAL OBJECTS //GLOBAL OBJECTS //GLOBAL OBJECTS //GLOBAL OBJECTS //GLOBAL OBJECTS //GLOBAL OBJECTS 
+
+	
+	const bebop_monitor = new bebopMonitor();
+
+	const timer_work_global = new bebopTimer(35*1000, bebop_monitor, "work");
+	const timer_break_global = new bebopTimer(35*1000, bebop_monitor, "break");	
+	
+
+
+	timer_work_global.setNextTimer(timer_break_global);
+	timer_break_global.setNextTimer(timer_work_global);
+
+	// RUN // RUN // RUN // RUN // RUN // RUN // RUN // RUN // RUN // RUN // RUN // RUN // RUN // RUN // RUN 
+
+	function runTime_mil() {
+		let time_i = getTime();
+		document.getElementById("q4_clock_tracker").innerHTML = "<p>" + timeToText(time_i) + "</p>";
+		document.getElementById("timer_work_monitor").innerHTML = milToText(timer_work_global.timeLeft);
+		document.getElementById("timer_break_monitor").innerHTML = milToText(timer_break_global.timeLeft);	
+	}
+
+	function runTime_sec() {
+		let time_i = getTime();
+
+		if((time_i.sec + 15) % 30 == 0)
+		{
+        	rotateBackground();
+		}
+
+		if(time_i.sec%30 == 0)
+		{
+        	bebop_monitor.updateCommand();
+		}
+
+	}
+	
+	setInterval(runTime_mil,10);
+	setInterval(runTime_sec,1000);
+	// runTime();
+
+</script>
+</html>
+
+
+
+
+
