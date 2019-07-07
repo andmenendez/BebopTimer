@@ -5,7 +5,7 @@
 	☺ longer time
 ☺ fix selector wheels to increment value instead of selecting to final value
 ☺ add stop button
-☺ change q2 display
+☺ ???? change q2 display
 ☺ add pause button and let space bar pause/play (?)
 ☺ add overlay instructions
 -->
@@ -366,14 +366,14 @@
 	
 
 	var timer_work_end_global = {};
-	var timer_work_end_mil_global = 0;
+	var timer_work_end_mil_global = 25*60*1000;
 	var timer_work_end_text_global = "00:25:00";
 	var timer_work_monitor_text_global = "00:25:00";
 
 
 
 	var timer_break_end_global = {};
-	var timer_break_end_mil_global = 0;
+	var timer_break_end_mil_global = 5*60*1000;
 	var timer_break_end_text_global = "00:25:00";
 	var timer_break_monitor_text_global = "00:25:00";
 
@@ -492,11 +492,30 @@
 		}
 	}
 	function rotate_dial_2(e) { //center @ y_pos = 418
+
+
+
+		console.log(e.clientY) // 0 - top ; 700 - bot
+
 		var rot_i = getComputedStyle(document.documentElement).getPropertyValue('--selector2_rot');
-		var delta = (180 * (e.clientY - 336) / 200);
-        document.documentElement.style.setProperty("--selector2_rot", delta + "deg");
+		let offset = e.clientY - 456;
+		var delta = 0.01 * (180 * (e.clientY + offset - 418) / 200);
+		var delta_time = (0 - delta/180) * 60*1000; 
+		console.log("Delta: " + delta)
+		console.log("DeltT: " + delta_time);
+		// console.log(e.clientY);
+		// console.log(delta + parseInt(rot_i.split("deg")[0]));
+		// console.log()	;
+		// document.getElementById('selector2').style.transform = `rotate(${secondsDegrees}deg)`;
+
+        document.documentElement.style.setProperty("--selector2_rot", (parseInt(rot_i.split("deg")[0]) + delta) + "deg");
+
+        // document.documentElement.style("--selector2_rot", (parseInt(rot_i.split("deg")[0]) - delta) + "deg");
 		// SET GLOBAL VARS
-		timer_break_end_mil_global = ((2 * 60 * 60 * 1000) * (700-e.clientY)/700) * 0.25;
+		delta_time < 0 ? timer_break_end_mil_global = 30*1000 : timer_break_end_mil_global += delta_time;
+		// timer_break_end_mil_global = ((2 * 60 * 60 * 1000) * (700-e.clientY)/700) * 0.25;
+
+
 		timer_break_end_global = milToTime(timer_break_end_mil_global);
 		timer_break_end_text_global = timeToText(timer_break_end_global);
 		timer_break_global.setEndTime(timer_break_end_mil_global);
@@ -533,9 +552,10 @@
 	
 	const bebop_monitor = new bebopMonitor();
 
-	const timer_work_global = new bebopTimer(35*1000, bebop_monitor, "work");
-	const timer_break_global = new bebopTimer(35*1000, bebop_monitor, "break");	
-	
+	const timer_work_global = new bebopTimer(25*60*1000, bebop_monitor, "work");
+	const timer_break_global = new bebopTimer(5*60*1000, bebop_monitor, "break");	
+	// const timer_rest_global = new bebopTimer(25*60*1000, bebop_monitor, "rest");	
+
 
 
 	timer_work_global.setNextTimer(timer_break_global);
