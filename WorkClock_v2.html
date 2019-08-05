@@ -3,10 +3,9 @@
 	☺ changes background 
 	☺ removes bebop monitor
 	☺ longer time
-☺ fix selector wheels to increment value instead of selecting to final value
-☺ add stop button
-☺ ???? change q2 display
-☺ add pause button and let space bar pause/play (?)
+
+☺ let space bar pause/play (?)
+☺ reset button
 ☺ add overlay instructions
 -->
 <!DOCTYPE html>
@@ -63,8 +62,23 @@
 			<div class="controls button" id="start_timer" data-desc="START_TIMER">
 			</div>
 
+			<div class="controls button" id="pause_button" data-desc="PAUSE_SYS">
+			</div>
+
+			<div class="controls button" id="reset_button" data-desc="PAUSE_SYS">
+			</div>
 		</div>
 
+	</div>
+	<div id="instructions" class = "crt">
+		<div class="instructions_text instruction_selector_1"> <- SELECT WORK TIME </div>
+		<div class="instructions_text instruction_selector_2"> <- SELECT BREAK TIME </div>
+		<div class="instructions_text instruction_button_1"> SWITCH VIEW -> </div>
+		<div class="instructions_text instruction_button_2"> START -> </div>
+		<div class="instructions_text instruction_button_3"> PAUSE/PLAY -> </div>
+		<div class="instructions_text instruction_button_4">  </div>
+		<div class="instructions_cont">CLICK ANYWHERE TO CONTINUE</div>
+		<div class="instructions_title">[INSTRUCTIONS]</div>
 	</div>
 </body>
 <script>
@@ -216,6 +230,8 @@
 			this.end_time_mil = timer_end_default;
 			this.timer_end_default = timer_end_default;
 			this.nextTimer = undefined;
+			this.time_last = 0;
+			this.offset_time = 0;
 
 			this.volumeSet = 0;
 
@@ -225,10 +241,10 @@
 
 			this.playedOnboard = false;
 			this.playedOffboard = false;
-
 		}
 		startTimer() 
 		{
+			pause_button = false;
 			this.status = true;
 			this.start_time = new Date();
 			this.playedOnboard = false;
@@ -246,14 +262,21 @@
 		{
 			this.end_time_mil = time_i_mil;
 		}
+		pause(now) {
+		}
 		get elapsedTime() {
-			if (!this.status || this.start_time == 0) 
-			{
-				return 0;
-			}
+			if (!this.status || this.start_time == 0) { return 0; }
 			let time_now = new Date();
 
-			let dt = time_now - this.start_time;
+			if (pause_button)
+			{ 
+				this.offset_time += this.time_last - time_now;
+			}
+
+			let dt = time_now - this.start_time + this.offset_time;
+			this.time_last = new Date();
+
+			
 
 			if (dt > 3*1000 && !this.playedOnboard)
 			{
@@ -274,20 +297,9 @@
 				this.playedOffboard = true;
 			}
 
-			if (dt < 20*1000 && dt > (20*1000-9)) 
-			{
-				rotateBackground(tf_list, tf_i, tf_list_id);
-			}
-
-			if (dt <= 0 && this.status) 
-			{
-				this.resetTime();
-				return 0;
-			}
-			else if (!this.status) 
-			{
-				return 0;
-			}
+			if 		(dt < 20*1000 && dt > (20*1000-9)) 	{ rotateBackground(tf_list, tf_i, tf_list_id); }
+			if 		(dt <= 0 && this.status) 			{ this.resetTime(); return 0; }
+			else if (!this.status) 						{ return 0; }
 			return dt;
 		}
 		resetTime() 
@@ -377,6 +389,7 @@
 	var timer_break_end_text_global = "00:25:00";
 	var timer_break_monitor_text_global = "00:25:00";
 
+	var pause_button = false;
 
 	//GLOBAL CONTROL FUNCTIONS //GLOBAL CONTROL FUNCTIONS //GLOBAL CONTROL FUNCTIONS //GLOBAL CONTROL FUNCTIONS 
 										// 			 |			 //
@@ -423,12 +436,6 @@
         document.getElementById("q1_timer_break_tracker").src = list[index];
         changeQ2Status_tag(id[index]);
     }
-
-	// function transition_work_onboard() {
-	// 	rotateBackground(to_list,to_i,to_list_id);	
-	// }
-	// function transition_work_offboard() {
-	// 	rotateBackground(tf_list,tf_i,tf_list_id);	}
 
 	function transition_work_onboard() 
 	{	playTransition(audio_to_list, 1);	rotateBackground(to_list,to_i,to_list_id);	}
@@ -477,48 +484,53 @@
 		document.addEventListener("mouseup", rotate_dial_end);
 	}
 
-	function rotate_dial_1(e) { //center @ y_pos = ~336
-		var rot_i = getComputedStyle(document.documentElement).getPropertyValue('--selector1_rot');
-		var delta = (180 * (e.clientY - 336) / 200);
-        document.documentElement.style.setProperty("--selector1_rot", delta + "deg");
-		// SET GLOBAL VARS
-		timer_work_end_mil_global = ((2 * 60 * 60 * 1000) * (700-e.clientY)/700)*0.5 -14000;
-		timer_work_end_global = milToTime(timer_work_end_mil_global);
-		timer_work_end_text_global = timeToText(timer_work_end_global);
-		timer_work_global.setEndTime(timer_work_end_mil_global);
+	const dialToDeg 		= 0.5;
+	const dialToTime1 		= 5000;
+	const dialToTime2 		= 2500;
+
+	var dial_1_value_default= 1000*60*25/dialToTime1;
+	var dial_1_value 		= dial_1_value_default;
+	var dial_1_last_value  	= dial_1_value;
+	var dial_1_last_y_pos 	= 336;
+
+	function rotate_dial_1(e) { //center @ y_pos = ~336  
+		let delta = 0 - (e.clientY-dial_1_last_y_pos);
+		dial_1_last_y_pos = e.clientY;
+		if (Math.abs(delta) > 75) { delta = 0; }
+		dial_1_value += delta; 
+
+		dial_1_time = dial_1_value * dialToTime1;
+		if (dial_1_time < 30000) { dial_1_time = 30000; dial_1_value = dial_1_last_value; }
+		dial_1_last_value = dial_1_value;
+		dial_1_deg = (dial_1_value - dial_1_value_default)* dialToDeg;
+
+		timer_work_global.setEndTime(dial_1_time);
+        document.documentElement.style.setProperty("--selector1_rot", dial_1_deg + "deg");
 
 		if (break_tracker_n  == 0) {
 			timer_work_global.setDefaultTime(timer_work_end_mil_global);
 		}
 	}
-	function rotate_dial_2(e) { //center @ y_pos = 418
 
+	var dial_2_value_default= 1000*60*5/dialToTime2;
+	var dial_2_value 		= dial_2_value_default; 
+	var dial_2_last_value  	= dial_2_value;
+	var dial_2_last_y_pos 	= 336;
 
+	function rotate_dial_2(e) { //center @ y_pos = ~336  
+		let delta = 0 - (e.clientY-dial_2_last_y_pos);
+		dial_2_last_y_pos = e.clientY;
+		if (Math.abs(delta) > 75) { delta = 0; }
+		dial_2_value += delta; 
 
-		console.log(e.clientY) // 0 - top ; 700 - bot
+		dial_2_time = dial_2_value * dialToTime2;
+		if (dial_2_time < 30000) { dial_2_time = 30000; dial_2_value = dial_2_last_value; }
+		dial_2_last_value = dial_2_value;
+		dial_2_deg = (dial_2_value - dial_2_value_default) * dialToDeg;
 
-		var rot_i = getComputedStyle(document.documentElement).getPropertyValue('--selector2_rot');
-		let offset = e.clientY - 456;
-		var delta = 0.01 * (180 * (e.clientY + offset - 418) / 200);
-		var delta_time = (0 - delta/180) * 60*1000; 
-		console.log("Delta: " + delta)
-		console.log("DeltT: " + delta_time);
-		// console.log(e.clientY);
-		// console.log(delta + parseInt(rot_i.split("deg")[0]));
-		// console.log()	;
-		// document.getElementById('selector2').style.transform = `rotate(${secondsDegrees}deg)`;
+		timer_break_global.setEndTime(dial_2_time);
+        document.documentElement.style.setProperty("--selector2_rot", dial_2_deg + "deg");
 
-        document.documentElement.style.setProperty("--selector2_rot", (parseInt(rot_i.split("deg")[0]) + delta) + "deg");
-
-        // document.documentElement.style("--selector2_rot", (parseInt(rot_i.split("deg")[0]) - delta) + "deg");
-		// SET GLOBAL VARS
-		delta_time < 0 ? timer_break_end_mil_global = 30*1000 : timer_break_end_mil_global += delta_time;
-		// timer_break_end_mil_global = ((2 * 60 * 60 * 1000) * (700-e.clientY)/700) * 0.25;
-
-
-		timer_break_end_global = milToTime(timer_break_end_mil_global);
-		timer_break_end_text_global = timeToText(timer_break_end_global);
-		timer_break_global.setEndTime(timer_break_end_mil_global);
 		if (break_tracker_n  == 0) {
 			timer_break_global.setDefaultTime(timer_break_end_mil_global);
 		}
@@ -543,13 +555,16 @@
 		timer_work_global.startTimer();	
 	})
 
+	document.getElementById("pause_button").addEventListener("mousedown", function() {
+		(pause_button) ? (pause_button = false) : (pause_button = true)
+	});
+
 	//VISUAL ANIMATE DESIGN //VISUAL ANIMATE DESIGN //VISUAL ANIMATE DESIGN //VISUAL ANIMATE DESIGN
 	//VISUAL ANIMATE DESIGN //VISUAL ANIMATE DESIGN //VISUAL ANIMATE DESIGN //VISUAL ANIMATE DESIGN
 	//VISUAL ANIMATE DESIGN //VISUAL ANIMATE DESIGN //VISUAL ANIMATE DESIGN //VISUAL ANIMATE DESIGN
 
 	//GLOBAL OBJECTS //GLOBAL OBJECTS //GLOBAL OBJECTS //GLOBAL OBJECTS //GLOBAL OBJECTS //GLOBAL OBJECTS 
 
-	
 	const bebop_monitor = new bebopMonitor();
 
 	const timer_work_global = new bebopTimer(25*60*1000, bebop_monitor, "work");
@@ -566,8 +581,11 @@
 	function runTime_mil() {
 		let time_i = getTime();
 		document.getElementById("q4_clock_tracker").innerHTML = "<p>" + timeToText(time_i) + "</p>";
-		document.getElementById("timer_work_monitor").innerHTML = milToText(timer_work_global.timeLeft);
-		document.getElementById("timer_break_monitor").innerHTML = milToText(timer_break_global.timeLeft);	
+		// if (!pause_button)
+		// {
+			document.getElementById("timer_work_monitor").innerHTML = milToText(timer_work_global.timeLeft);
+			document.getElementById("timer_break_monitor").innerHTML = milToText(timer_break_global.timeLeft);
+		// }
 	}
 
 	function runTime_sec() {
@@ -589,6 +607,22 @@
 	setInterval(runTime_sec,1000);
 	// runTime();
 
+
+//instructions
+document.getElementById("instructions").addEventListener("mouseup",clear_instructions)
+function clear_instructions() {
+	let inst = document.getElementById("instructions")
+	inst.removeEventListener("mouseup", clear_instructions);
+	inst.style.display = "none";
+}
+
+
+	// document.getElementById("reset_button").addEventListener("mousedown",function() {
+	// 		timer_break_global.stopTime();
+	// 		timer_break_global.resetTime();
+	// 		timer_work_global.stopTime();
+	// 		timer_work_global.resetTime();
+	// })
 </script>
 </html>
 

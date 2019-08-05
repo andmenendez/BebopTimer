@@ -37,6 +37,56 @@ img {
 	filter: grayscale(75%);
 	opacity: 1;
 }
+
+#instructions {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  background-color: rgba(0,0,255,0.3);
+  color: yellow;
+}
+.instructions_text {
+  padding-left: 500px;
+}
+.instruction_selector_1{
+  margin-top: 324px;
+  margin-left: 465px;
+}
+.instruction_selector_2{
+  margin-top: 64px;
+  margin-left: 465px;
+}
+.instruction_button_1{
+  margin-top:-110px;
+  margin-left: 234px;
+}
+.instruction_button_2{
+  margin-top: 10px;
+  margin-left: 291px;
+}
+.instruction_button_3{
+  margin-top: 10px;
+  margin-left: 247px;
+}
+.instruction_button_4{
+  margin-top: 10px;
+  margin-left: 291px;
+}
+.instructions_title {
+  text-align: center;
+  width: 100%;
+  margin-top: -560px;
+  font-size: 32px;
+}
+.instructions_cont {
+  text-align: center;
+  margin-top: 170px;
+  width: 100%;
+  font-size: 24px;
+}
 .container {
 	min-width: 75vw;
 	min-height: 75vh;
@@ -197,9 +247,25 @@ img {
   margin-top: -128px;
   margin-left: 673px;
 }
+#pause_button { /*3RD BUTTON*/
+  border-radius: 10px;
+  width: 17px;
+  height: 17px;
+  margin-top: -99px;
+  margin-left: 673px;
+
+}
+#reset_button { /*4TH BUTTON*/
+  border-radius: 10px;
+  width: 17px;
+  height: 17px;
+  margin-top: -70px;
+  margin-left: 673px;
+}
 .button:hover {
 	background-color: black;
-	opacity: 0.2;
+	opacity: 0.3;
+  cursor: pointer;
 }
 
 @keyframes flicker {
